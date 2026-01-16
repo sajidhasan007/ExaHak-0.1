@@ -4,6 +4,7 @@ import RootLayout from "@/layouts/RootLayout"
 import Dashboard from "@/pages/Dashboard"
 import Home from "@/pages/Home"
 import Login from "@/pages/Login"
+import ProfilePage from "@/pages/Profile"
 import { createBrowserRouter } from "react-router-dom"
 
 export const router = createBrowserRouter([
@@ -37,7 +38,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "profile",
-            element: <Dashboard />,
+            element: <ProfilePage />,
           },
           {
             path: "settings",
