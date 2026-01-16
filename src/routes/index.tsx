@@ -31,6 +31,18 @@ export const router = createBrowserRouter([
             index: true,
             element: <Dashboard />,
           },
+          {
+            path: "notifications",
+            element: <Dashboard />,
+          },
+          {
+            path: "profile",
+            element: <Dashboard />,
+          },
+          {
+            path: "settings",
+            element: <Dashboard />,
+          },
         ],
       },
     ],

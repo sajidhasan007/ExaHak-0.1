@@ -17,9 +17,9 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 const sidebarItems = [
   { icon: Home, label: "Home", href: "/" },
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Bell, label: "Notifications", href: "#" },
-  { icon: User, label: "Profile", href: "#" },
-  { icon: Settings, label: "Settings", href: "#" },
+  { icon: Bell, label: "Notifications", href: "/dashboard/notifications" },
+  { icon: User, label: "Profile", href: "/dashboard/profile" },
+  { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ]
 
 export default function DashboardLayout() {
@@ -33,20 +33,19 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Desktop Sidebar */}
       <aside className="bg-card hidden w-64 flex-col border-r md:flex">
-        <div className="border-b p-6">
+        <div className="border-b px-6 py-4">
           <h2 className="flex items-center gap-2 text-xl font-bold">
             <span className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-lg">
-              B
+              E
             </span>
-            Boilerplate
+            ExaHak-0.1
           </h2>
         </div>
-        <nav className="flex-1 space-y-2 p-4">
+        <nav className="flex-1 space-y-2 px-6 py-4">
           <SidebarNavItems />
         </nav>
-        <div className="border-t p-4">
+        <div className="border-t px-6 py-4">
           <div className="flex items-center gap-3 px-3 py-2">
             {user?.photoURL ? (
               <img
@@ -69,7 +68,6 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="bg-background/95 supports-backdrop-filter:bg-background/60 flex h-16 items-center justify-between border-b px-4 backdrop-blur md:px-8">
           <Sheet>
@@ -80,7 +78,7 @@ export default function DashboardLayout() {
             </SheetTrigger>
             <SheetContent side="left" className="w-64 p-0">
               <div className="border-b p-6">
-                <h2 className="text-xl font-bold">Boilerplate</h2>
+                <h2 className="text-xl font-bold">ExaHak-0.1</h2>
               </div>
               <nav className="space-y-2 p-4">
                 <SidebarNavItems />
@@ -103,7 +101,13 @@ export default function DashboardLayout() {
             >
               Toggle Theme
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
+            <Button
+              variant="ghost"
+              title="Logout"
+              size="icon"
+              onClick={handleLogout}
+              className="cursor-pointer"
+            >
               <LogOut className="text-destructive h-4 w-4" />
             </Button>
           </div>

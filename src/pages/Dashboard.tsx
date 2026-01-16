@@ -62,6 +62,40 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="analytics" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">
+                Example of a dashboard layout using shadcn components.
+              </p>
+              <div className="mt-4 flex h-[200px] items-center justify-center rounded-lg border-2 border-dashed">
+                <p className="text-muted-foreground italic">
+                  Charts coming soon...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="reports" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">
+                Example of a dashboard layout using shadcn components.
+              </p>
+              <div className="mt-4 flex h-[200px] items-center justify-center rounded-lg border-2 border-dashed">
+                <p className="text-muted-foreground italic">
+                  Charts coming soon...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   )
