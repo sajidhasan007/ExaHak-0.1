@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { authService } from "@/services/auth.service"
+import { userService } from "@/services/user.service"
 import { Chrome, Facebook, Github } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 
@@ -17,14 +18,25 @@ export default function Login() {
 
   const handleLogin = async (method: "google" | "github" | "facebook") => {
     try {
-      if (method === "google") await authService.loginWithGoogle()
-      if (method === "github") await authService.loginWithGithub()
-      if (method === "facebook") await authService.loginWithFacebook()
+      let user
+      if (method === "google") user = await authService.loginWithGoogle()
+      if (method === "github") user = await authService.loginWithGithub()
+      if (method === "facebook") user = await authService.loginWithFacebook()
+
+      if (user) {
+        await userService.saveUser({
+          id: user.uid,
+          email: user.email || "",
+          displayName: user.displayName || "",
+          photoURL: user.photoURL || "",
+        })
+      }
 
       navigate(from, { replace: true })
     } catch (error) {
       console.error("Login failed:", error)
     }
+    navigate(from, { replace: true })
   }
 
   return (

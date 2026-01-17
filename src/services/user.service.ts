@@ -17,4 +17,10 @@ export const userService = {
     const response = await api.patch("/user/profile", data)
     return response.data
   },
+
+  async saveUser(user: Partial<UserProfile>): Promise<void> {
+    console.log(user)
+
+    await api.post("/user/register", user)
+  },
 }
