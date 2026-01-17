@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { AIModel } from "@/types/model"
 import { motion } from "framer-motion"
+import { Star } from "lucide-react"
 import { Link } from "react-router-dom"
 
 interface ModelCardProps {
@@ -22,7 +23,14 @@ export function ModelCard({ model }: ModelCardProps) {
                     {model.provider}
                   </Badge>
                 </div>
-                <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                <div className="text-muted-foreground flex items-center gap-3 text-sm">
+                  <div className="flex items-center gap-1 text-yellow-500">
+                    <Star className="h-3.5 w-3.5 fill-current" />
+                    <span className="text-foreground font-semibold">
+                      {model.rating ? model.rating.toFixed(1) : "N/A"}
+                    </span>
+                  </div>
+                  <span>•</span>
                   <span>${model.price}/req</span>
                   <span>•</span>
                   <div className="flex gap-1">

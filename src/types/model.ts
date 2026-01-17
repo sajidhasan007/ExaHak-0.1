@@ -5,6 +5,16 @@ export interface ModelVersion {
   createdAt: string
 }
 
+export interface Comment {
+  id: string
+  userId: string
+  userName: string
+  userAvatar?: string
+  content: string
+  rating: number
+  createdAt: string
+}
+
 export interface AIModel {
   id: string
   title: string
@@ -17,6 +27,9 @@ export interface AIModel {
   inputType: string
   outputType: string
   versions: ModelVersion[]
+  rating?: number
+  reviewCount?: number
+  comments?: Comment[]
 }
 
 export interface ModelPromptResponse {

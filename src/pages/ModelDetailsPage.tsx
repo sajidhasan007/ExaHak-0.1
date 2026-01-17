@@ -8,7 +8,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/hooks/useAuth"
 import { modelService } from "@/services/model.service"
 import type { AIModel } from "@/types/model"
-import { Code, Download, Loader2, Play, Send, Terminal } from "lucide-react"
+import {
+  Code,
+  Download,
+  Loader2,
+  MessageSquare,
+  Play,
+  Send,
+  Star,
+  Terminal,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -29,6 +38,11 @@ export default function ModelDetailsPage() {
   )
   const [response, setResponse] = useState("")
   const [isInferencing, setIsInferencing] = useState(false)
+
+  // Reviews state
+  const [newComment, setNewComment] = useState("")
+  const [newRating, setNewRating] = useState(5)
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
 
   const selectedVersion =
     model?.versions.find((v) => v.id === selectedVersionId) ||
@@ -98,6 +112,45 @@ export default function ModelDetailsPage() {
     }
   }
 
+  const handleSubmitReview = async () => {
+    if (!user || !newComment.trim() || !id) return
+
+    try {
+      setIsSubmittingReview(true)
+      const data = await modelService.addComment(id, {
+        userId: user.uid || "anon",
+        userName: user.displayName || "User",
+        userAvatar: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+        content: newComment,
+        rating: newRating,
+      })
+
+      // Update local state
+      setModel((prev) => {
+        if (!prev) return null
+        const updatedComments = [data, ...(prev.comments || [])]
+        const currentRating = prev.rating || 0
+        const currentCount = prev.reviewCount || 0
+        return {
+          ...prev,
+          comments: updatedComments,
+          rating:
+            (currentRating * currentCount + newRating) / (currentCount + 1),
+          reviewCount: currentCount + 1,
+        }
+      })
+
+      setNewComment("")
+      setNewRating(5)
+      toast.success("Review submitted successfully!")
+    } catch (error) {
+      console.error("Failed to submit review", error)
+      toast.error("Failed to submit review")
+    } finally {
+      setIsSubmittingReview(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto my-16 animate-pulse px-4 md:px-6">
@@ -148,7 +201,20 @@ export default function ModelDetailsPage() {
           </div>
 
           <div>
-            <h1 className="mb-2 text-4xl font-bold">{model.title}</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="mb-2 text-4xl font-bold">{model.title}</h1>
+              {model.rating && (
+                <div className="flex items-center gap-1.5">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <span className="text-lg font-bold">
+                    {model.rating.toFixed(1)}
+                  </span>
+                  <span className="text-muted-foreground text-sm">
+                    ({model.reviewCount} reviews)
+                  </span>
+                </div>
+              )}
+            </div>
             <p className="text-muted-foreground mb-4 text-lg">
               by {model.provider}
             </p>
@@ -174,6 +240,14 @@ export default function ModelDetailsPage() {
             <Tabs defaultValue="overview" className="w-full">
               <TabsList className="mb-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="reviews" className="flex gap-2">
+                  Reviews
+                  {model.comments && (
+                    <span className="bg-muted text-muted-foreground rounded-full px-1.5 py-0.5 text-[10px]">
+                      {model.comments.length}
+                    </span>
+                  )}
+                </TabsTrigger>
                 <TabsTrigger value="api">API Reference</TabsTrigger>
                 <TabsTrigger value="install">Installation</TabsTrigger>
               </TabsList>
@@ -300,6 +374,135 @@ async function run() {
 
 run();`}
                     </pre>
+                  </div>
+                </div>
+              </TabsContent>
+              <TabsContent value="reviews" className="space-y-8">
+                <div className="space-y-6">
+                  <h3 className="flex items-center gap-2 text-2xl font-semibold">
+                    <MessageSquare className="h-5 w-5" />
+                    Community Reviews
+                  </h3>
+
+                  {/* Review Form */}
+                  <Card className="bg-muted/30 border-dashed">
+                    <CardContent className="pt-6">
+                      {!user ? (
+                        <div className="flex flex-col items-center justify-center py-4 text-center">
+                          <p className="text-muted-foreground mb-4 text-sm">
+                            You must be logged in to leave a review.
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              navigate("/login", { state: { from: location } })
+                            }
+                          >
+                            Login
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-4">
+                            <Label>Your Rating</Label>
+                            <div className="flex gap-1">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <button
+                                  key={s}
+                                  type="button"
+                                  onClick={() => setNewRating(s)}
+                                  className="transition-transform hover:scale-110"
+                                >
+                                  <Star
+                                    className={`h-6 w-6 ${
+                                      s <= newRating
+                                        ? "fill-yellow-400 text-yellow-400"
+                                        : "text-muted-foreground fill-none"
+                                    }`}
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="review-content">Your Review</Label>
+                            <Textarea
+                              id="review-content"
+                              placeholder="Share your experience with this model..."
+                              className="bg-background min-h-[100px]"
+                              value={newComment}
+                              onChange={(e) => setNewComment(e.target.value)}
+                            />
+                          </div>
+                          <Button
+                            onClick={handleSubmitReview}
+                            disabled={isSubmittingReview || !newComment.trim()}
+                            className="w-full sm:w-auto"
+                          >
+                            {isSubmittingReview ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Submitting...
+                              </>
+                            ) : (
+                              "Submit Review"
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Reviews List */}
+                  <div className="space-y-6 pt-4">
+                    {model.comments && model.comments.length > 0 ? (
+                      model.comments.map((comment) => (
+                        <div
+                          key={comment.id}
+                          className="border-muted animate-reveal flex gap-4 border-b pb-6 last:border-0"
+                        >
+                          <img
+                            src={comment.userAvatar}
+                            className="h-10 w-10 shrink-0 rounded-full object-cover"
+                            alt={comment.userName}
+                          />
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-semibold">
+                                {comment.userName}
+                              </h4>
+                              <span className="text-muted-foreground text-xs">
+                                {new Date(
+                                  comment.createdAt
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="mb-2 flex gap-0.5">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star
+                                  key={s}
+                                  className={`h-3 w-3 ${
+                                    s <= comment.rating
+                                      ? "fill-yellow-400 text-yellow-400"
+                                      : "text-muted-foreground/30 fill-none"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <p className="text-muted-foreground text-sm leading-relaxed">
+                              {comment.content}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="bg-muted/20 rounded-xl py-12 text-center">
+                        <p className="text-muted-foreground">
+                          No reviews yet. Be the first to share your thoughts!
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </TabsContent>
