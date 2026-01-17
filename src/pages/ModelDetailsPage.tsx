@@ -602,9 +602,9 @@ run();`}
                   </>
                 )}
 
-                <div className="text-muted-foreground border-t pt-4 text-center text-xs">
+                {/* <div className="text-muted-foreground border-t pt-4 text-center text-xs">
                   Cost: ${model.price} per request
-                </div>
+                </div> */}
               </CardContent>
             </Card>
 

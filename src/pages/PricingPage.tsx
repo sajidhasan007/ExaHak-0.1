@@ -35,7 +35,7 @@ export default function PricingPage() {
             <ul className="space-y-3">
               <li className="flex items-center text-sm">
                 <Check className="mr-2 h-4 w-4 text-[oklch(0.627_0.265_149.213)]" />{" "}
-                100K Token Limit
+                20K Token Limit
               </li>
               <li className="flex items-center text-sm">
                 <Check className="mr-2 h-4 w-4 text-[oklch(0.627_0.265_149.213)]" />{" "}
@@ -75,7 +75,7 @@ export default function PricingPage() {
             <ul className="space-y-3">
               <li className="flex items-center text-sm">
                 <Check className="mr-2 h-4 w-4 text-[oklch(0.627_0.265_149.213)]" />{" "}
-                10M Token Limit
+                1M Token Limit
               </li>
               <li className="flex items-center text-sm">
                 <Check className="mr-2 h-4 w-4 text-[oklch(0.627_0.265_149.213)]" />{" "}

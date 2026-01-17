@@ -30,8 +30,8 @@ export function ModelCard({ model }: ModelCardProps) {
                       {model.rating ? model.rating.toFixed(1) : "N/A"}
                     </span>
                   </div>
-                  <span>•</span>
-                  <span>${model.price}/req</span>
+                  {/* <span>•</span> */}
+                  {/* <span>${model.price}/req</span> */}
                   <span>•</span>
                   <div className="flex gap-1">
                     {model.tags.slice(0, 3).map((tag) => (
