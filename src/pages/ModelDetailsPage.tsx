@@ -1,23 +1,38 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import { useAuth } from "@/hooks/useAuth"
 import { modelService } from "@/services/model.service"
 import type { AIModel } from "@/types/model"
-import { Loader2, Play, Send } from "lucide-react"
+import { Code, Download, Loader2, Play, Send, Terminal } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
 export default function ModelDetailsPage() {
   const { id } = useParams()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [model, setModel] = useState<AIModel | null>(null)
   const [loading, setLoading] = useState(true)
 
   // Try it out state
   const [prompt, setPrompt] = useState("")
+  const [file, setFile] = useState<File | null>(null)
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(
+    null
+  )
   const [response, setResponse] = useState("")
   const [isInferencing, setIsInferencing] = useState(false)
+
+  const selectedVersion =
+    model?.versions.find((v) => v.id === selectedVersionId) ||
+    model?.versions[0]
 
   useEffect(() => {
     if (!id) return
@@ -27,6 +42,9 @@ export default function ModelDetailsPage() {
         setLoading(true)
         const data = await modelService.getModelById(id)
         setModel(data)
+        if (data.versions.length > 0) {
+          setSelectedVersionId(data.versions[0].id)
+        }
       } catch (error) {
         console.error("Failed to fetch model details", error)
         // Fallback demo data
@@ -41,6 +59,16 @@ export default function ModelDetailsPage() {
           imageUrl:
             "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=1000",
           features: ["Fast inference", "High accuracy", "Low latency"],
+          inputType: "Text",
+          outputType: "JSON",
+          versions: [
+            {
+              id: "v-demo",
+              name: "v1.0.0-demo",
+              script: "def predict(): pass",
+              createdAt: new Date().toISOString(),
+            },
+          ],
         })
       } finally {
         setLoading(false)
@@ -72,12 +100,31 @@ export default function ModelDetailsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto my-16 px-4 md:px-6">
-        <Skeleton className="h-[400px] w-full rounded-xl" />
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-[300px]" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
+      <div className="container mx-auto my-16 animate-pulse px-4 md:px-6">
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="space-y-8 lg:col-span-2">
+            <Skeleton className="aspect-video w-full rounded-xl" />
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-3/4" />
+              <Skeleton className="h-4 w-1/4" />
+              <div className="flex gap-2">
+                <Skeleton className="h-6 w-20 rounded-md" />
+                <Skeleton className="h-6 w-20 rounded-md" />
+                <Skeleton className="h-6 w-20 rounded-md" />
+              </div>
+              <div className="space-y-2 pt-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-1">
+            <div className="space-y-6">
+              <Skeleton className="h-[400px] w-full rounded-xl" />
+              <Skeleton className="h-[200px] w-full rounded-xl" />
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -105,7 +152,7 @@ export default function ModelDetailsPage() {
             <p className="text-muted-foreground mb-4 text-lg">
               by {model.provider}
             </p>
-            <div className="mb-6 flex gap-2">
+            <div className="mb-6 flex flex-wrap gap-2">
               {model.tags.map((tag) => (
                 <span
                   key={tag}
@@ -114,23 +161,149 @@ export default function ModelDetailsPage() {
                   {tag}
                 </span>
               ))}
+              <div className="ml-auto flex gap-2">
+                <span className="bg-primary/10 text-primary border-primary/20 rounded border px-2 py-1 text-xs font-medium uppercase">
+                  IN: {model.inputType}
+                </span>
+                <span className="bg-primary/10 text-primary border-primary/20 rounded border px-2 py-1 text-xs font-medium uppercase">
+                  OUT: {model.outputType}
+                </span>
+              </div>
             </div>
 
-            <h3 className="mb-3 text-2xl font-semibold">About this model</h3>
-            <p className="text-muted-foreground leading-7">
-              {model.description}
-            </p>
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="api">API Reference</TabsTrigger>
+                <TabsTrigger value="install">Installation</TabsTrigger>
+              </TabsList>
+              <TabsContent value="overview" className="space-y-6">
+                <div>
+                  <h3 className="mb-3 text-2xl font-semibold">
+                    About this model
+                  </h3>
+                  <p className="text-muted-foreground leading-7">
+                    {model.description}
+                  </p>
+                </div>
 
-            {model.features && (
-              <div className="mt-8">
-                <h3 className="mb-4 text-xl font-semibold">Key Features</h3>
-                <ul className="text-muted-foreground list-disc space-y-2 pl-5">
-                  {model.features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                {model.features && (
+                  <div>
+                    <h3 className="mb-4 text-xl font-semibold">Key Features</h3>
+                    <ul className="text-muted-foreground list-disc space-y-2 pl-5">
+                      {model.features.map((feature, i) => (
+                        <li key={i}>{feature}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div>
+                  <h3 className="mb-4 text-xl font-semibold">
+                    Version History
+                  </h3>
+                  <div className="space-y-3">
+                    {model.versions.map((v) => (
+                      <div
+                        key={v.id}
+                        className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
+                          selectedVersionId === v.id
+                            ? "border-primary bg-primary/5"
+                            : "hover:bg-muted/50"
+                        }`}
+                        onClick={() => setSelectedVersionId(v.id)}
+                        role="button"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Terminal className="text-muted-foreground h-4 w-4" />
+                          <div>
+                            <p className="font-medium">{v.name}</p>
+                            <p className="text-muted-foreground text-xs">
+                              Inference Script Only (Python)
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-muted-foreground text-xs">
+                          {new Date(v.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+              <TabsContent value="api" className="space-y-6">
+                <div className="space-y-4">
+                  <h3 className="flex items-center gap-2 text-xl font-semibold">
+                    <Terminal className="h-5 w-5" />
+                    API Endpoint
+                  </h3>
+                  <div className="bg-muted rounded-lg p-4 font-mono text-sm">
+                    POST https://api.exahack.ai/v1/models/{model.id}/predict
+                  </div>
+
+                  <h4 className="mt-4 font-medium">Request Body</h4>
+                  <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-sm">
+                    {JSON.stringify(
+                      {
+                        prompt: "Your input text here",
+                        parameters: {
+                          temperature: 0.7,
+                          max_tokens: 100,
+                        },
+                      },
+                      null,
+                      2
+                    )}
+                  </pre>
+
+                  <h4 className="mt-4 font-medium">Example cURL</h4>
+                  <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-sm">
+                    {`curl -X POST https://api.exahack.ai/v1/models/${model.id}/predict \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "prompt": "Hello world"
+  }'`}
+                  </pre>
+                </div>
+              </TabsContent>
+              <TabsContent value="install" className="space-y-6">
+                <div className="space-y-4">
+                  <h3 className="flex items-center gap-2 text-xl font-semibold">
+                    <Code className="h-5 w-5" />
+                    Integration Guide
+                  </h3>
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium">1. Install the SDK</h4>
+                    <div className="bg-muted rounded-lg p-4 font-mono text-sm">
+                      npm install @exahack/ai-sdk
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium">2. Initialize and Run</h4>
+                    <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-sm">
+                      {`import { ExaHack } from '@exahack/ai-sdk';
+
+const client = new ExaHack({
+  apiKey: process.env.EXAHACK_API_KEY
+});
+
+async function run() {
+  const response = await client.models.run('${model.id}', {
+    prompt: 'Summarize this article...'
+  });
+  
+  console.log(response.text);
+}
+
+run();`}
+                    </pre>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
 
@@ -145,48 +318,149 @@ export default function ModelDetailsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Input Prompt</label>
-                  <Textarea
-                    placeholder="Enter your prompt here..."
-                    className="min-h-[120px] resize-none"
-                    value={prompt}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setPrompt(e.target.value)
-                    }
-                  />
-                </div>
-
-                <Button
-                  className="w-full"
-                  onClick={handleInference}
-                  disabled={isInferencing || !prompt}
-                >
-                  {isInferencing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="mr-2 h-4 w-4" />
-                      Run Inference
-                    </>
-                  )}
-                </Button>
-
-                {response && (
-                  <div className="mt-6 space-y-2">
-                    <label className="text-sm font-medium">Output</label>
-                    <div className="bg-muted animate-in fade-in slide-in-from-bottom-2 rounded-md p-3 text-sm whitespace-pre-wrap">
-                      {response}
-                    </div>
+                {!user ? (
+                  <div className="flex flex-col items-center justify-center space-y-4 py-8 text-center">
+                    <p className="text-muted-foreground text-sm">
+                      Sign in to interact with this model and see it in action.
+                    </p>
+                    <Button
+                      onClick={() =>
+                        navigate("/login", { state: { from: location } })
+                      }
+                      className="w-full"
+                    >
+                      Login to Try
+                    </Button>
                   </div>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Input Prompt
+                      </label>
+                      <Textarea
+                        placeholder="Enter your prompt here..."
+                        className="min-h-[120px] resize-none"
+                        value={prompt}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                          setPrompt(e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Upload File (Optional)
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="file"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              setFile(e.target.files[0])
+                            }
+                          }}
+                          className="cursor-pointer"
+                        />
+                      </div>
+                      {file && (
+                        <p className="text-muted-foreground text-xs">
+                          Selected: {file.name}
+                        </p>
+                      )}
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={handleInference}
+                      disabled={isInferencing || !prompt}
+                    >
+                      {isInferencing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Run Inference
+                        </>
+                      )}
+                    </Button>
+
+                    {response && (
+                      <div className="mt-6 space-y-2">
+                        <label className="text-sm font-medium">Output</label>
+                        <div className="bg-muted animate-in fade-in slide-in-from-bottom-2 rounded-md p-3 text-sm whitespace-pre-wrap">
+                          {response}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <div className="text-muted-foreground border-t pt-4 text-center text-xs">
                   Cost: ${model.price} per request
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-secondary shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="text-primary h-5 w-5" />
+                  Download Model
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground text-sm">
+                  Get the model weights and configuration files for local
+                  deployment.
+                </p>
+                {!user ? (
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      navigate("/login", { state: { from: location } })
+                    }
+                    className="w-full border-dashed"
+                  >
+                    Login to Download
+                  </Button>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Select Version
+                      </Label>
+                      <select
+                        className="bg-background border-input ring-offset-background placeholder:text-muted-foreground focus:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        value={selectedVersionId || ""}
+                        onChange={(e) => setSelectedVersionId(e.target.value)}
+                      >
+                        {model.versions.map((v) => (
+                          <option key={v.id} value={v.id}>
+                            {v.name} (
+                            {new Date(v.createdAt).toLocaleDateString()})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <Button
+                      variant="secondary"
+                      className="w-full"
+                      onClick={() => {
+                        toast.success("Download started", {
+                          description: `${model.title} (${selectedVersion?.name}) weights are downloading...`,
+                        })
+                      }}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download {selectedVersion?.name} Weights
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

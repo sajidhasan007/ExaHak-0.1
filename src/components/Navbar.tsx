@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/useAuth"
 import { authService } from "@/services/auth.service"
+import { motion } from "framer-motion"
 import { Menu, X } from "lucide-react"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
@@ -34,83 +36,90 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to="/" className="flex items-center space-x-2">
-              <span className="from-primary bg-linear-to-r to-purple-600 bg-clip-text text-xl font-bold text-transparent">
+              <motion.span
+                whileHover={{ scale: 1.05 }}
+                className="text-gradient transform-gpu text-xl font-bold"
+              >
                 ExaHack.AI
-              </span>
+              </motion.span>
             </Link>
             <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-              <Link
-                to="/models"
-                className="hover:text-foreground/80 text-foreground/60 transition-colors"
-              >
-                Models
-              </Link>
-              <Link
-                to="/pricing"
-                className="hover:text-foreground/80 text-foreground/60 transition-colors"
-              >
-                Pricing
-              </Link>
+              {["Models", "Pricing", "Docs"].map((item) => (
+                <motion.div key={item} whileHover={{ y: -2 }}>
+                  <Link
+                    to={`/${item.toLowerCase()}`}
+                    className="hover:text-foreground/80 text-foreground/60 transition-colors"
+                  >
+                    {item}
+                  </Link>
+                </motion.div>
+              ))}
             </nav>
           </div>
 
           <div className="flex items-center gap-4">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={user.photoURL || ""}
-                        alt={user.displayName || ""}
-                      />
-                      <AvatarFallback>
-                        {user.displayName?.[0]?.toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm leading-none font-medium">
-                        {user.displayName}
-                      </p>
-                      <p className="text-muted-foreground text-xs leading-none">
-                        {user.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/my-models")}>
-                    My Models
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => navigate("/dashboard/profile")}
-                  >
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 w-8 rounded-full"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={user.photoURL || ""}
+                          alt={user.displayName || ""}
+                        />
+                        <AvatarFallback>
+                          {user.displayName?.[0]?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm leading-none font-medium">
+                          {user.displayName}
+                        </p>
+                        <p className="text-muted-foreground text-xs leading-none">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate("/my-models")}>
+                      My Models
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/dashboard/profile")}
+                    >
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/login")}
-                >
-                  Log in
-                </Button>
-                <Button size="sm" onClick={() => navigate("/login")}>
-                  Get Started
-                </Button>
+                <ThemeToggle />
+                <div className="hidden items-center gap-2 sm:flex">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate("/login")}
+                  >
+                    Log in
+                  </Button>
+                  <Button size="sm" onClick={() => navigate("/login")}>
+                    Get Started
+                  </Button>
+                </div>
               </div>
             )}
             <button

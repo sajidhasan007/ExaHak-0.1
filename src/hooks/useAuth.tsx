@@ -1,26 +1,36 @@
-import { auth } from "@/lib/firebase"
-import { onAuthStateChanged, type User } from "firebase/auth"
+import { type MockUser } from "@/services/auth.service"
 import { createContext, useContext, useEffect, useState } from "react"
 
 interface AuthContextType {
-  user: User | null
+  user: MockUser | null
   loading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<MockUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Listen for auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user)
+    const loadUser = () => {
+      const stored = localStorage.getItem("mock_user")
+      if (stored) {
+        setUser(JSON.parse(stored))
+      } else {
+        setUser(null)
+      }
       setLoading(false)
-    })
+    }
 
-    return () => unsubscribe()
+    loadUser()
+
+    const handleAuthChange = () => {
+      loadUser()
+    }
+
+    window.addEventListener("auth-change", handleAuthChange)
+    return () => window.removeEventListener("auth-change", handleAuthChange)
   }, [])
 
   return (

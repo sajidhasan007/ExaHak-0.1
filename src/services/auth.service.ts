@@ -1,48 +1,45 @@
-import {
-  auth,
-  facebookProvider,
-  githubProvider,
-  googleProvider,
-} from "@/lib/firebase"
-import { signInWithPopup, signOut } from "firebase/auth"
+// Mock User Interface to replace Firebase User
+export interface MockUser {
+  uid: string
+  email: string | null
+  displayName: string | null
+  photoURL: string | null
+}
+
+const MOCK_USER: MockUser = {
+  uid: "mock-user-123",
+  email: "demo@example.com",
+  displayName: "Demo User",
+  photoURL: "https://github.com/shadcn.png",
+}
 
 export const authService = {
   async loginWithGoogle() {
-    try {
-      const result = await signInWithPopup(auth, googleProvider)
-      return result.user
-    } catch (error) {
-      console.error("Google Login Error:", error)
-      throw error
-    }
+    await new Promise((resolve) => setTimeout(resolve, 800))
+    localStorage.setItem("mock_user", JSON.stringify(MOCK_USER))
+    window.dispatchEvent(new Event("auth-change"))
+    return MOCK_USER
   },
 
   async loginWithGithub() {
-    try {
-      const result = await signInWithPopup(auth, githubProvider)
-      return result.user
-    } catch (error) {
-      console.error("Github Login Error:", error)
-      throw error
-    }
+    await new Promise((resolve) => setTimeout(resolve, 800))
+    const user = { ...MOCK_USER, displayName: "Github User" }
+    localStorage.setItem("mock_user", JSON.stringify(user))
+    window.dispatchEvent(new Event("auth-change"))
+    return user
   },
 
   async loginWithFacebook() {
-    try {
-      const result = await signInWithPopup(auth, facebookProvider)
-      return result.user
-    } catch (error) {
-      console.error("Facebook Login Error:", error)
-      throw error
-    }
+    await new Promise((resolve) => setTimeout(resolve, 800))
+    const user = { ...MOCK_USER, displayName: "Facebook User" }
+    localStorage.setItem("mock_user", JSON.stringify(user))
+    window.dispatchEvent(new Event("auth-change"))
+    return user
   },
 
   async logout() {
-    try {
-      await signOut(auth)
-    } catch (error) {
-      console.error("Logout Error:", error)
-      throw error
-    }
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    localStorage.removeItem("mock_user")
+    window.dispatchEvent(new Event("auth-change"))
   },
 }

@@ -1,3 +1,10 @@
+export interface ModelVersion {
+  id: string
+  name: string
+  script: string
+  createdAt: string
+}
+
 export interface AIModel {
   id: string
   title: string
@@ -7,6 +14,9 @@ export interface AIModel {
   price: number
   imageUrl?: string
   features?: string[]
+  inputType: string
+  outputType: string
+  versions: ModelVersion[]
 }
 
 export interface ModelPromptResponse {

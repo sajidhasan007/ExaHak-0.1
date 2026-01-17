@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
 import { authService } from "@/services/auth.service"
+import { AnimatePresence, motion } from "framer-motion"
 import {
   Bell,
   Home,
@@ -25,6 +26,7 @@ const sidebarItems = [
 export default function DashboardLayout() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleLogout = async () => {
     await authService.logout()
@@ -114,7 +116,17 @@ export default function DashboardLayout() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <Outlet />
+          <AnimatePresence>
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </div>
@@ -129,19 +141,20 @@ function SidebarNavItems() {
       {sidebarItems.map((item) => {
         const isActive = location.pathname === item.href
         return (
-          <Link
-            key={item.label}
-            to={item.href}
-            className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-          </Link>
+          <motion.div key={item.label} whileHover={{ x: 4 }}>
+            <Link
+              to={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-primary/20 shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          </motion.div>
         )
       })}
     </>
